@@ -4,9 +4,9 @@ from django.urls import reverse
 
 from model_bakery import baker
 from pyfcm.fcm import FCMNotification
-from rest_framework.test import APIClient
 import pytest
 import responses
+from rest_framework.test import APIClient
 
 from fcm_devices import service
 from fcm_devices.api.drf.serializers import DeviceSerializer
