@@ -50,6 +50,8 @@ configuration_error_response = {
 
 
 # TODO: add tests for update_or_create_device
+# TODO: add tests for Device.__str__
+# TODO: add tests for Device.updated_at being adjusted on update/deactivation
 
 
 @responses.activate

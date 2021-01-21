@@ -38,7 +38,7 @@ class FCMBackend(object):
         if result["failure"] > 0:
             if result["results"][0]["error"] in unrecoverable_errors:
                 device.active = False
-                device.save(update_fields=("active",))
+                device.save(update_fields=("active", "updated_at"))
             elif result["results"][0]["error"] in configuration_errors:
                 raise ImproperlyConfigured(
                     f"FCM configuration problem sending to device {device.id}: "
