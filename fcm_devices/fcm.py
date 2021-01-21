@@ -17,7 +17,7 @@ class FCMBackend(object):
     """You can override this class to customise sending of notifications."""
 
     def send_notification(self, device, title=None, body=None, icon=None, **kwargs):
-        push_service = FCMNotification(api_key=app_settings.FCM_API_KEY)
+        push_service = FCMNotification(api_key=app_settings.API_KEY)
         result = push_service.notify_single_device(
             registration_id=device.token,
             message_title=title,
@@ -63,7 +63,7 @@ class ConsoleFCMBackend(FCMBackend):
 
 
 def get_fcm_backend():
-    cls = app_settings.FCM_BACKEND_CLASS
+    cls = app_settings.BACKEND_CLASS
     if cls is None:
         # default to console to avoid accidental push notifications
         return ConsoleFCMBackend()

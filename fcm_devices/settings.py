@@ -14,10 +14,10 @@ class AppSettings(object):
 
 DEFAULTS = {
     # api key from Firebase for sending push messages
-    "FCM_API_KEY": None,
+    "API_KEY": None,
     # allow customisation of how messages are actually sent
-    "FCM_BACKEND_CLASS": None,
+    "BACKEND_CLASS": None,
 }
 
 
-app_settings = AppSettings("DEVICES", DEFAULTS)
+app_settings = AppSettings("FCM_DEVICES", DEFAULTS)
