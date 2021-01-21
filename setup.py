@@ -7,7 +7,7 @@ description = (
 )
 author = "Luke Burden"
 author_email = "lukeburden@gmail.com"
-url = "https://github.com/poparide/django-fcm-devices"
+url = "https://github.com/lukeburden/django-fcm-devices"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
