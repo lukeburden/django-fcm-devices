@@ -1,4 +1,4 @@
-# Register devices and send push notifications via FCM from your Django app
+# Minimalistic FCM device registration for your Django app
 
 [![](https://img.shields.io/pypi/v/django-fcm-devices.svg)](https://pypi.python.org/pypi/django-fcm-devices/)
 [![](https://img.shields.io/badge/license-MIT-blue.svg)](https://pypi.python.org/pypi/django-fcm-devices/)
@@ -13,11 +13,13 @@
 
 It assumes you have an app (mobile, web, whatever!) and users who log into this app. It assumes you want to solely use FCM to send push notifications to those users. And it assumes you want the interaction between your apps and your backend to be as straight-forward as possible.
 
-Before authoring this library, existing options were considered. There are good options out there, but they provide APIs that are too expansive and too brittle to allow the app code to be dead simple. They also have made schema choices which don't quite fit with the need this library meets - not handling registration token uniqueness on a per-user basis. That said, the top contenders - [django-push-notifications](https://github.com/jazzband/django-push-notifications) and [fcm-django](https://github.com/xtrinch/fcm-django) - are both worth checking out and just may fit your use-case better. I've used them both over the years!
+Before authoring this library, existing options were considered. They tend to provide APIs that are too expansive and brittle to allow the app code to be dead simple. They tend to make schema choices early on which are hard to tighten up later, resulting in further brittleness and race conditions.
 
-This library leverages the excellent [PyFCM](https://github.com/olucurious/PyFCM) to interact with Firebase.
+That said, the top contenders - [django-push-notifications](https://github.com/jazzband/django-push-notifications) and [fcm-django](https://github.com/xtrinch/fcm-django) - are worth checking out and just may fit your specific use-case better. Personally, I've always found myself _wanting less_.
 
-This library uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
+This library leverages the excellent [PyFCM](https://github.com/olucurious/PyFCM) to interact with Firebase once you've registered your devices.
+
+This library uses [semantic versioning](https://semver.org/spec/v2.0.0.html) because no one likes surprise backward incompatible changes, right?
 
 
 ### Install ####
@@ -72,7 +74,8 @@ If you receive a 201 response, those changes are persisted.
 
 Notice how similar the create and update are? In fact, they're more or less the same. This is an idempotent endpoint, which is a little unusual but not forbidden for a POST request.
 
-Note: use of PUT for this was considered, but typically PUT is used when the caller specifies the ID of the resource in the URL. This would logically be the registration ID, however it is not clear [whether or not FCM registration tokens are dependably URL-safe](https://stackoverflow.com/questions/12403628/is-there-a-gcm-registrationid-pattern/12502351#12502351) and I didn't want the added complexity of requiring callers to URL encode them. 
+Note: use of PUT for this was considered, but typically PUT is used when the caller specifies the ID of the resource in the URL. This would logically be the registration ID, however it is not clear [whether or not FCM registration tokens are dependably URL-safe](https://stackoverflow.com/questions/12403628/is-there-a-gcm-registrationid-pattern/12502351#12502351) and I didn't want the added complexity of requiring callers to URL encode them.
+
 
 #### Send push notifications ####
 
@@ -126,11 +129,13 @@ result = push_service.notify_single_device(
 )
 ```
 
+
 ### Contribute ###
 
 Spot a bug or something that needs a test? Contributions are very welcome, but bear in mind that this library aims to be minimalistic and somewhat opinionated in its approach and that larger feature additions should likely be put in dependent but separate apps.
 
  will run tests using `tox` when you push.
+
 
 #### Run the tests ####
 
@@ -159,6 +164,7 @@ And to run the test suite:
 ```
 $ tox
 ```
+
 
 #### Submit a PR ####
 
