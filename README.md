@@ -134,8 +134,6 @@ result = push_service.notify_single_device(
 
 Spot a bug or something that needs a test? Contributions are very welcome, but bear in mind that this library aims to be minimalistic and somewhat opinionated in its approach and that larger feature additions should likely be put in dependent but separate apps.
 
- will run tests using `tox` when you push.
-
 
 #### Run the tests ####
 
