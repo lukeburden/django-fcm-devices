@@ -16,13 +16,10 @@ configuration_errors = set(["MismatchSenderId"])
 class FCMBackend(object):
     """You can override this class to customise sending of notifications."""
 
-    def send_notification(self, device, title=None, body=None, icon=None, **kwargs):
+    def send_notification(self, device, **kwargs):
         push_service = FCMNotification(api_key=app_settings.API_KEY)
         result = push_service.notify_single_device(
             registration_id=device.token,
-            message_title=title,
-            message_body=body,
-            message_icon=icon,
             **kwargs,
         )
         self.update_device_on_error(device, result)
@@ -49,15 +46,8 @@ class FCMBackend(object):
 class ConsoleFCMBackend(FCMBackend):
     """Console FCM backend for development environments."""
 
-    def send_notification(
-        self, device, title=None, body=None, data_message=None, **kwargs
-    ):
-        print(
-            f"Push to {device}\n"
-            f"Title: {title}\n"
-            f"Body: {body}\n"
-            f"Data: {data_message}"
-        )
+    def send_notification(self, device, **kwargs):
+        print(f"Push to {device}\nPyFCM kwargs: {kwargs}\n")
         # this is a partial response, but the part our sending code will be looking for
         return {"success": 1, "failure": 0}
 

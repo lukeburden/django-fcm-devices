@@ -89,13 +89,13 @@ from fcm_devices.service import send_notification, send_notification_to_user
 
 device = Device.objects.get(user_id=123)  # get the device for the user you want to message
 
-send_notification(device, title="An important push", body="Oh dear ..")
+send_notification(device, message_title="An important push", message_body="Oh dear ..")
 
 # or send it straight to all the user's devices
-send_notification_to_user(User.objects.get(id=123), title="An important push", body="Oh dear ..")
+send_notification_to_user(User.objects.get(id=123), message_title="An important push", message_body="Oh dear ..")
 ```
 
-These functions have the added bonus of processing sending errors and deactivating devices, so they should generally be used.
+These functions have the added bonus of processing sending errors and deactivating devices, so they should generally be used. As kwargs, they take anything that PyFCM supports and are essentially passed through.
 
 But what about bulk and data notifications, you ask? Well, easy does it tiger. We'll likely get there (or send along a PR?!) but in the meantime you can easily do this yourself by directly using [PyFCM](https://github.com/olucurious/PyFCM):
 
@@ -129,9 +129,9 @@ result = push_service.notify_single_device(
 )
 ```
 
-#### A word on the circle of life (of an FCM token) ####
+#### The life of an FCM token ####
 
-As you've now read, this library just lets you PUT tokens. It doesn't let you list your tokens or delete them yourself. This simplicity is only really OK due to the life-cycle of an FCM token.
+The API this library exposes by default just just lets you POST device tokens. It doesn't let you list your devices or delete them yourself. This simplicity is only really OK due to the life-cycle of an FCM token.
 
 When you get an FCM token, it is usually because you've just opened an app after installing it, restoring it or wiping its data. This token is specific to the very install of the application your using. Notably, it is not specific to the user logged into the application.
 
@@ -139,7 +139,7 @@ While that app installation remains intact, you can typically continue to use th
 
 Finally, when FCM attempts to deliver a message to the device and the app was uninstalled, FCM discards that message right away and invalidates the registration token. Future attempts to send a message to that device results in a NotRegistered error.
 
-Assuming you're using the convenience methods this library provides, when a token is found to be invalid it will be marked with `active` set to false. This typically is the end of that token's life - you might want to periodically purge inactive tokens if your space conscious.
+Assuming you're using the convenience methods this library provides, when a token is found to be invalid it will be marked with `active` set to false. This typically is the end of that token's life - you might want to periodically purge inactive tokens if you're space conscious.
 
 
 ### Contribute ###

@@ -11,11 +11,7 @@ def update_or_create_device(user, token, active, _type, name):
     instance, created = Device.objects.update_or_create(
         user=user,
         token=token,
-        defaults={
-            "active": active,
-            "type": _type,
-            "name": name,
-        },
+        defaults={"active": active, "type": _type, "name": name},
     )
     if created:
         signals.device_created.send(sender=Device, device=instance)

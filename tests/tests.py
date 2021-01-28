@@ -56,7 +56,7 @@ configuration_error_response = {
 
 @responses.activate
 @pytest.mark.django_db
-@override_settings(DEVICES_FCM_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
+@override_settings(FCM_DEVICES_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
 def test_send_notification(api_client):
     responses.add(
         responses.Response(
@@ -69,7 +69,7 @@ def test_send_notification(api_client):
     )
     device = baker.make("fcm_devices.Device", active=True)
     response = service.send_notification(
-        device, title="Test title", body="Test content"
+        device, message_title="Test title", message_body="Test content"
     )
     assert response == success_response
     device.refresh_from_db()
@@ -78,7 +78,7 @@ def test_send_notification(api_client):
 
 @responses.activate
 @pytest.mark.django_db
-@override_settings(DEVICES_FCM_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
+@override_settings(FCM_DEVICES_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
 def test_send_notification_invalid_device(api_client):
     responses.add(
         responses.Response(
@@ -91,7 +91,7 @@ def test_send_notification_invalid_device(api_client):
     )
     device = baker.make("fcm_devices.Device", active=True)
     response = service.send_notification(
-        device, title="Test title", body="Test content"
+        device, message_title="Test title", message_body="Test content"
     )
     assert response == unrecoverable_error_response
     device.refresh_from_db()
@@ -100,7 +100,7 @@ def test_send_notification_invalid_device(api_client):
 
 @responses.activate
 @pytest.mark.django_db
-@override_settings(DEVICES_FCM_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
+@override_settings(FCM_DEVICES_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
 def test_send_notification_config_error(api_client):
     responses.add(
         responses.Response(
@@ -113,8 +113,13 @@ def test_send_notification_config_error(api_client):
     )
     device = baker.make("fcm_devices.Device", active=True)
     with pytest.raises(ImproperlyConfigured) as e:
-        service.send_notification(device, title="Test title", body="Test content")
-        assert e.value == f"Uh o h device {device.id}: MismatchSenderId"
+        service.send_notification(
+            device, message_title="Test title", message_body="Test content"
+        )
+
+    assert e.value.args[0] == (
+        f"FCM configuration problem sending to device {device.id}: MismatchSenderId"
+    )
 
     # device should not be deactivated, as if it is a recoverable error we do not
     # need to purge the tokens, we just need to fix the config
@@ -129,13 +134,15 @@ def test_send_notification_to_user_has_multiple_devices(mocker):
     second_active_device = baker.make("fcm_devices.Device", user=user, active=True)
     baker.make("fcm_devices.Device", user=user, active=False)
     mocked_send_notification = mocker.patch("fcm_devices.service.send_notification")
-    service.send_notification_to_user(user, title="Test title", body="Test content")
+    service.send_notification_to_user(
+        user, message_title="Test title", message_body="Test content"
+    )
     assert mocked_send_notification.call_count == 2
     mocked_send_notification.assert_any_call(
-        active_device, body="Test content", title="Test title"
+        active_device, message_body="Test content", message_title="Test title"
     )
     mocked_send_notification.assert_any_call(
-        second_active_device, body="Test content", title="Test title"
+        second_active_device, message_body="Test content", message_title="Test title"
     )
 
 
