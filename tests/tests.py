@@ -144,7 +144,7 @@ def test_send_notification(api_client):
 @responses.activate
 @pytest.mark.django_db
 @override_settings(FCM_DEVICES_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
-def test_send_notification_invalid_device(api_client):
+def test_send_notification_invalid_device(api_client, mocker):
     responses.add(
         responses.Response(
             method="POST",
@@ -156,6 +156,9 @@ def test_send_notification_invalid_device(api_client):
     )
     device = baker.make("fcm_devices.Device", active=True)
     initial_updated_at = device.updated_at
+    device_updated_signal = mocker.patch(
+        "fcm_devices.service.signals.device_updated.send"
+    )
     response = service.send_notification(
         device, message_title="Test title", message_body="Test content"
     )
@@ -163,12 +166,13 @@ def test_send_notification_invalid_device(api_client):
     device.refresh_from_db()
     assert not device.active
     assert device.updated_at > initial_updated_at
+    assert device_updated_signal.called_with_args(sender=Device, device=device)
 
 
 @responses.activate
 @pytest.mark.django_db
 @override_settings(FCM_DEVICES_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
-def test_send_notification_config_error(api_client):
+def test_send_notification_config_error(api_client, mocker):
     responses.add(
         responses.Response(
             method="POST",
@@ -179,6 +183,9 @@ def test_send_notification_config_error(api_client):
         )
     )
     device = baker.make("fcm_devices.Device", active=True)
+    device_updated_signal = mocker.patch(
+        "fcm_devices.service.signals.device_updated.send"
+    )
     with pytest.raises(ImproperlyConfigured) as e:
         service.send_notification(
             device, message_title="Test title", message_body="Test content"
@@ -192,6 +199,7 @@ def test_send_notification_config_error(api_client):
     # need to purge the tokens, we just need to fix the config
     device.refresh_from_db()
     assert device.active
+    assert not device_updated_signal.called
 
 
 @pytest.mark.django_db

@@ -4,6 +4,7 @@ from django.utils.module_loading import import_string
 from pyfcm import FCMNotification
 
 from .settings import app_settings
+from .signals import device_updated
 
 
 # categorise common errors in terms of what we"ll do
@@ -36,6 +37,7 @@ class FCMBackend(object):
             if result["results"][0]["error"] in unrecoverable_errors:
                 device.active = False
                 device.save(update_fields=("active", "updated_at"))
+                device_updated.send(sender=device.__class__, device=device)
             elif result["results"][0]["error"] in configuration_errors:
                 raise ImproperlyConfigured(
                     f"FCM configuration problem sending to device {device.id}: "
