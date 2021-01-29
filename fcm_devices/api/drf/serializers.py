@@ -1,3 +1,4 @@
+from konst.extras.drf.fields import ConstantChoiceField
 from rest_framework import serializers
 
 from ...models import Device
@@ -5,6 +6,8 @@ from ...service import update_or_create_device
 
 
 class DeviceSerializer(serializers.ModelSerializer):
+    type = ConstantChoiceField(Device.types)
+
     class Meta:
         model = Device
         fields = ("token", "name", "active", "type")

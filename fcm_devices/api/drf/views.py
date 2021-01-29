@@ -7,15 +7,41 @@ from .serializers import DeviceSerializer
 
 class DeviceViewSet(viewsets.ModelViewSet):
     """
-    Allow a user to register and manage FCM tokens for their devices.
+    Allow a user to manage FCM tokens for their devices.
 
-    This API sets out to allow client code to be as simple as possible.
-    To do this, it bends the rules of REST a little and will commute a
-    POST to an update (normally would be a PATCH) if
+    To allow client code to be ultra simple this API provides an idempotent
+    POST endpoint.
 
-    This means that client code can have a function to generate the state
-    of its current push registration and simply POST that to this API
-    on both login and logout.
+    Client code can then not worry about previous tokens and simply update the
+    backend with the latest token, name and state.
+
+    ## POST ##
+
+    ### Register an FCM device ###
+
+    This will store the given device details against the current user.
+
+        POST /v1/device/fcm
+        {
+            "name": <unicode>,
+            "type": "ios" | "android" | "web",
+            "token": <fcm token string>,
+            "active": <boolean>
+        }
+
+    ### Updating an existing device ###
+
+    To update an existing device you can simply POST the same token value again but
+    with a change to the name or active state.
+
+        POST v1/device/fcm
+        {
+            "name": <unicode>,
+            "type": "ios" | "android" | "web",
+            "token": <fcm token string>,
+            "active": <boolean>
+        }
+
     """
 
     permission_classes = (IsAuthenticated,)
