@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from fcm_devices import service
 from fcm_devices.api.drf.serializers import DeviceSerializer
+from fcm_devices.models import Device
 
 
 @pytest.fixture()
@@ -49,9 +50,73 @@ configuration_error_response = {
 }
 
 
-# TODO: add tests for update_or_create_device
-# TODO: add tests for Device.__str__
-# TODO: add tests for Device.updated_at being adjusted on update/deactivation
+@pytest.mark.django_db
+def test_update_or_create_device_create(mocker):
+    user = baker.make("auth.User")
+    assert Device.objects.count() == 0
+    device_created_signal = mocker.patch(
+        "fcm_devices.service.signals.device_created.send"
+    )
+    device_updated_signal = mocker.patch(
+        "fcm_devices.service.signals.device_updated.send"
+    )
+    device, created = service.update_or_create_device(
+        user=user,
+        token="iamfcmroar",
+        active=True,
+        _type=Device.types.android,
+        name="Pixel 2",
+    )
+    assert Device.objects.count() == 1
+    assert created
+    assert device_created_signal.called_with_args(sender=Device, device=device)
+    assert not device_updated_signal.called
+
+
+@pytest.mark.django_db
+def test_update_or_create_device_update(mocker):
+    user = baker.make("auth.User")
+    device = Device.objects.create(
+        user=user,
+        token="iamfcmroar",
+        active=True,
+        type=Device.types.android,
+        name="Pixel 2",
+    )
+    initial_updated_at = device.updated_at
+    assert Device.objects.count() == 1
+    device_created_signal = mocker.patch(
+        "fcm_devices.service.signals.device_created.send"
+    )
+    device_updated_signal = mocker.patch(
+        "fcm_devices.service.signals.device_updated.send"
+    )
+    device, created = service.update_or_create_device(
+        user=user,
+        token="iamfcmroar",
+        active=False,
+        _type=Device.types.android,
+        name="Pixel 2",
+    )
+    assert Device.objects.count() == 1
+    assert not device.active
+    assert not created
+    assert device.updated_at > initial_updated_at
+    assert device_updated_signal.called_with_args(sender=Device, device=device)
+    assert not device_created_signal.called
+
+
+@pytest.mark.django_db
+def test_device_model_str(mocker):
+    user = baker.make("auth.User", first_name="Ringo")
+    device = Device.objects.create(
+        user=user,
+        token="iamfcmroar",
+        active=True,
+        type=Device.types.android,
+        name="Pixel 2",
+    )
+    assert str(device) == f"{user} on android w/ token iamfcmroar..."
 
 
 @responses.activate
@@ -90,12 +155,14 @@ def test_send_notification_invalid_device(api_client):
         )
     )
     device = baker.make("fcm_devices.Device", active=True)
+    initial_updated_at = device.updated_at
     response = service.send_notification(
         device, message_title="Test title", message_body="Test content"
     )
     assert response == unrecoverable_error_response
     device.refresh_from_db()
     assert not device.active
+    assert device.updated_at > initial_updated_at
 
 
 @responses.activate
