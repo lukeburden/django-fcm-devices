@@ -1,3 +1,5 @@
+import json
+
 from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 from django.urls import reverse
@@ -288,3 +290,50 @@ def test_create_device_duplicate(api_client):
     assert response.status_code == 201
     new_device = device.user.devices.last()
     assert new_device == device
+
+
+# test admin send action
+
+
+@pytest.mark.django_db
+@responses.activate
+@override_settings(FCM_DEVICES_BACKEND_CLASS="fcm_devices.fcm.FCMBackend")
+def test_send_test_notification_action(client, mocker):
+    responses.add(
+        responses.Response(
+            method="POST",
+            url=FCMNotification.FCM_END_POINT,
+            match_querystring=False,
+            json=success_response,
+            status=200,
+        )
+    )
+
+    device = baker.make(
+        "fcm_devices.Device", user__is_staff=True, user__is_superuser=True
+    )
+    responses.add(
+        responses.Response(
+            method="POST",
+            url=FCMNotification.FCM_END_POINT,
+            match_querystring=False,
+            json=success_response,
+            status=200,
+        )
+    )
+
+    client.force_login(device.user)
+
+    send_url = reverse("admin:fcm_devices_device_changelist")
+    data = {
+        "action": "send_notification",
+        "select_across": "0",
+        "index": "0",
+        "_selected_action": device.id,
+    }
+
+    response = client.post(send_url, data=data)
+
+    assert response.status_code == 302
+    assert len(responses.calls) == 1
+    assert json.loads(responses.calls[0].response.text) == success_response

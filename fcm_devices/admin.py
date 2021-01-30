@@ -47,7 +47,7 @@ class DeviceAdmin(admin.ModelAdmin):
         error_counts = defaultdict(int)
         for device in queryset.iterator():
             response = service.get_fcm_backend().send_notification(
-                device, title="Testing 123", body="A test notification"
+                device, message_title="Testing 123", message_body="A test notification"
             )
             if int(response["success"]):
                 success += 1
