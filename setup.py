@@ -14,7 +14,12 @@ with open("README.md", "r") as fh:
 
 install_requires = [
     "django>=3,<4",
-    "pyfcm==1.4.9",
+    # Todo: determine the versioning strategy PyFCM is using and adjust this if necessary.
+    # The last backward incompatible change seems to have been made in a minor version
+    # (1.4.0) so for now we'll assume we're safe within a minor version - and both 1.4.x
+    # and 1.5.x currently look good.
+    # https://github.com/olucurious/PyFCM/issues/285
+    "pyfcm>=1.4,<1.6",
     "django-konst>=2,<3",
 ]
 
@@ -32,7 +37,7 @@ setup(
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version="1.0.0",
+    version="1.0.1",
     license="MIT",
     url=url,
     packages=find_packages(exclude=["tests", "testproj"]),
