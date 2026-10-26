@@ -1,6 +1,9 @@
 from collections import defaultdict
 
 from django.contrib import admin, messages
+from django.core.exceptions import ImproperlyConfigured
+
+from pyfcm.errors import FCMError
 
 from . import service
 from .models import Device
@@ -29,32 +32,30 @@ class DeviceAdmin(admin.ModelAdmin):
         """
         Send a test notification immediately.
 
-        Will parse and represent any errors encountered, expecting a response
-        structure similar to the following:
-
-            {
-                "multicast_ids": [123456789],
-                "success": 0,
-                "failure": 1,
-                "canonical_ids": 0,
-                "results": [
-                    {"error": "InvalidRegistration"}
-                ],
-                "topic_message_id": None
-            }
+        With the FCM v1 API a successful send returns the message identifier,
+        e.g. {"name": "projects/myproject/messages/0:1500415314455276%31bd1c96"}.
+        Failures are raised as PyFCM errors, except for unregistered tokens which
+        the backend handles by deactivating the device and returning None.
         """
         success = errors = 0
         error_counts = defaultdict(int)
+        backend = service.get_fcm_backend()
         for device in queryset.iterator():
-            response = service.get_fcm_backend().send_notification(
-                device, message_title="Testing 123", message_body="A test notification"
-            )
-            if int(response["success"]):
-                success += 1
-            elif int(response["failure"]):
+            try:
+                response = backend.send_notification(
+                    device,
+                    notification_title="Testing 123",
+                    notification_body="A test notification",
+                )
+            except (FCMError, ImproperlyConfigured) as e:
                 errors += 1
-                for e in response["results"]:
-                    error_counts[e.get("error")] += 1
+                error_counts[e.__class__.__name__] += 1
+                continue
+            if response and response.get("name"):
+                success += 1
+            else:
+                errors += 1
+                error_counts["FCMNotRegisteredError"] += 1
         if success:
             self.message_user(
                 request, f"{success} notifications were sent successfully."

@@ -123,4 +123,4 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-DEVICES_FCM_API_KEY = "oopwhoopdoop"
+DEVICES_GOOGLE_SERVICE_ACCOUNT_INFO = {"project_id": "foobarbaz123"}

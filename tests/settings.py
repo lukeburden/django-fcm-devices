@@ -56,5 +56,3 @@ TEMPLATES = [
     }
 ]
 SECRET_KEY = "fcm-devices-secret-key"
-
-FCM_DEVICES_API_KEY = "ohsosecret"

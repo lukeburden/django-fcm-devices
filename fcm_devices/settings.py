@@ -13,8 +13,9 @@ class AppSettings(object):
 
 
 DEFAULTS = {
-    # api key from Firebase for sending push messages
-    "API_KEY": None,
+    # from firebase service account file, found at
+    # https://console.firebase.google.com/u/0/project/_/settings/serviceaccounts/adminsdk
+    "GOOGLE_SERVICE_ACCOUNT_INFO": None,
     # allow customisation of how messages are actually sent
     "BACKEND_CLASS": None,
 }
